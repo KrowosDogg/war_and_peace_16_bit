@@ -46,7 +46,6 @@ enum eRegister operandType(char *operand_name);
 
 int main (int argc, char *argv[])
 {
-    printf("I'm here! FIXME\n");
     if (argc != 3)
     {
         printf(help_string);
@@ -65,7 +64,6 @@ void assembleFile(FILE *f_source, FILE *f_destination)
 {
     tDatabase label_values;
     consctructLabelValuesDatabase(&label_values);
-
     //the first file parsing
     tAddress current_address = 0;
     while (!feof(f_source))

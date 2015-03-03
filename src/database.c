@@ -65,7 +65,7 @@ void printLabelValues(tDatabase label_values)
     printf("--- Labels database contents: ---\n");
     for(int i = 0; i < label_values.table_real_size; i++)
     {
-        printf("\t%20s\t%s\n", label_values.table[i].line.str,
+        printf("\t%20s\t%d\n", label_values.table[i].line.str,
                                label_values.table[i].address);
     }
 }

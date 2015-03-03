@@ -281,7 +281,7 @@ int isRegisterName(char *operator_name)
 */
 void upperCase(char *strpos)
 {
-    while (strpos != 0) //while not end of line
+    while (*strpos != 0) //while not end of line
     {
         if (*strpos >= 'a' && *strpos <= 'z')
         {
