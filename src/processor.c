@@ -65,7 +65,6 @@ char help_string[] = "processor.exe <binary file name>\n"
 
 int main(int argc, char *argv[])
 {
-    printf("HELLO!\n");
     if (argc != 2)
     {
         printf(help_string);
@@ -79,13 +78,7 @@ int main(int argc, char *argv[])
         tCode code = readCodeFromRAM (RAM, regValue[IP]);
         tCommandWithOperands cmd = makeCommandWithOperands(code);
 
-        //for debugging!
-        //printf("performing: %d %d -- %s\n", cmd.cmd.type, cmd.cmd.index, makeLine(cmd));
-
         commandAction[cmd.cmd.type][cmd.cmd.index](cmd);
-
-        //for debugging!
-        //printRegistersValues(regValue);
 
         if (command_did_jump)
             command_did_jump = 0;
@@ -107,7 +100,7 @@ tCode readCodeFromRAM(tByte RAM[], tWord address)
     code.words[0] = word;
     for (int i = 1; i < code.size; i++)
     {
-        memcpy(&word, &RAM[address + i], WORD_SIZE);
+        memcpy(&word, (tWord*)&RAM[address] + i, WORD_SIZE);
         code.words[i] = word;
     }
     return code;
@@ -155,18 +148,17 @@ tWord getOperandValue(tOperand operand)
 
 int getFlagValue(enum FlagType flagType)
 {
-    return (tByte)(regValue[FLAGS]%256) & flagType;
+    return !!((int)(regValue[FLAGS]%256) & flagType);
+    //double logical NOT will make 1 from any nonzero and 0 from 0
 }
 
 void _mov (tCommandWithOperands cmd)
 {
-    printf ("We moved!!!\n");
     regValue[cmd.left.type] = getOperandValue(cmd.right);
 }
 
 void _add (tCommandWithOperands cmd)
 {
-    printf ("We added!!!\n");
     int result = (int)regValue[cmd.left.type] + (int)getOperandValue(cmd.right);
     regValue[cmd.left.type] = (tWord)result;
     regValue[FLAGS] = CarryFlag*((result & (~0xFFFF)) != 0) | ZeroFlag*(result == 0);
@@ -174,7 +166,6 @@ void _add (tCommandWithOperands cmd)
 
 void _sub (tCommandWithOperands cmd)
 {
-    printf ("We subed!!!\n");
     int result = (int)regValue[cmd.left.type] - (int)getOperandValue(cmd.right);
     regValue[cmd.left.type] = (tWord)result; //FIXME: to document what is result if negative value
     regValue[FLAGS] = NegativeFlag*(result < 0) | CarryFlag*((result & ~0xFFFF) != 0) | ZeroFlag*(result == 0);
@@ -182,14 +173,12 @@ void _sub (tCommandWithOperands cmd)
 
 void _cmp (tCommandWithOperands cmd)
 {
-    printf ("We compare!!!\n");
     int result = (int)regValue[cmd.left.type] - (int)getOperandValue(cmd.right);
     regValue[FLAGS] = NegativeFlag*(result < 0) | CarryFlag*((result & ~0xFFFF) != 0) | ZeroFlag*(result == 0);
 }
 
 void _mul (tCommandWithOperands cmd)
 {
-    printf ("We muled!!!\n");
     int result = (int)regValue[cmd.left.type] * (int)getOperandValue(cmd.right);
     regValue[cmd.left.type] = (tWord)result;
     regValue[FLAGS] = CarryFlag*((result & ~0xFFFF) != 0) | ZeroFlag*(result == 0);
@@ -198,7 +187,6 @@ void _mul (tCommandWithOperands cmd)
 //ѕосле операции частное помещаетс€ в ax, а остаток - в dx.
 void _div (tCommandWithOperands cmd)
 {
-    printf("We dived!!!\n");
     tWord left = getOperandValue(cmd.left);
     tWord right = getOperandValue(cmd.right);
     if (right == 0)
@@ -213,7 +201,6 @@ void _div (tCommandWithOperands cmd)
 
 void _xor (tCommandWithOperands cmd)
 {
-    printf ("We xored!!!\n");
     tWord result = regValue[cmd.left.type] ^ getOperandValue(cmd.right);
     regValue[cmd.left.type] = (tWord)result;
     regValue[FLAGS] = ZeroFlag*(result == 0);
@@ -221,7 +208,6 @@ void _xor (tCommandWithOperands cmd)
 
 void _and (tCommandWithOperands cmd)
 {
-    printf ("We anded!!!\n");
     tWord result = regValue[cmd.left.type] & getOperandValue(cmd.right);
     regValue[cmd.left.type] = (tWord)result;
     regValue[FLAGS] = ZeroFlag*(result == 0);
@@ -229,7 +215,6 @@ void _and (tCommandWithOperands cmd)
 
 void _or (tCommandWithOperands cmd)
 {
-    printf ("We ored!!!\n");
     tWord result = regValue[cmd.left.type] | getOperandValue(cmd.right);
     regValue[cmd.left.type] = (tWord)result;
     regValue[FLAGS] = ZeroFlag*(result == 0);
@@ -237,7 +222,6 @@ void _or (tCommandWithOperands cmd)
 
 void _not (tCommandWithOperands cmd)
 {
-    printf ("We noted!!!\n");
     tWord result = ~regValue[cmd.left.type];
     regValue[cmd.left.type] = (tWord)result;
     regValue[FLAGS] = ZeroFlag*(result == 0);
@@ -245,14 +229,12 @@ void _not (tCommandWithOperands cmd)
 
 void _jmp (tCommandWithOperands cmd)
 {
-    printf ("We jumped!!!\n");
     regValue[IP] = getOperandValue(cmd.left);
     command_did_jump = 1;
 }
 
 void _je (tCommandWithOperands cmd)
 {
-    printf ("We je!!!\n");
     if (getFlagValue(ZeroFlag) == 1) {
         regValue[IP] = getOperandValue(cmd.left);
         command_did_jump = 1;
@@ -260,8 +242,7 @@ void _je (tCommandWithOperands cmd)
 }
 void _jne (tCommandWithOperands cmd)
 {
-	printf ("We jne!!!\n");
-    if (getFlagValue(ZeroFlag) == 0) {
+	if (getFlagValue(ZeroFlag) == 0) {
         regValue[IP] = getOperandValue(cmd.left);
         command_did_jump = 1;
     }
@@ -269,8 +250,7 @@ void _jne (tCommandWithOperands cmd)
 
 void _jg (tCommandWithOperands cmd)
 {
-	printf ("We jg!!!\n");
-    if (getFlagValue(ZeroFlag) == 0 && getFlagValue(NegativeFlag) == 0) {
+	if (getFlagValue(ZeroFlag) == 0 && getFlagValue(NegativeFlag) == 0) {
         regValue[IP] = getOperandValue(cmd.left);
         command_did_jump = 1;
     }
@@ -278,8 +258,7 @@ void _jg (tCommandWithOperands cmd)
 
 void _jge (tCommandWithOperands cmd)
 {
-	printf ("We jge!!!\n");
-    if (getFlagValue(NegativeFlag) == 0) {
+	if (getFlagValue(NegativeFlag) == 0) {
         regValue[IP] = getOperandValue(cmd.left);
         command_did_jump = 1;
     }
@@ -287,8 +266,7 @@ void _jge (tCommandWithOperands cmd)
 
 void _jl (tCommandWithOperands cmd)
 {
-	printf ("We jl!!!\n");
-    if (getFlagValue(NegativeFlag) == 1) {
+	if (getFlagValue(NegativeFlag) == 1) {
         regValue[IP] = getOperandValue(cmd.left);
         command_did_jump = 1;
     }
@@ -296,8 +274,7 @@ void _jl (tCommandWithOperands cmd)
 
 void _jle (tCommandWithOperands cmd)
 {
-	printf ("We jle!!!\n");
-    if (getFlagValue(ZeroFlag) == 1 || getFlagValue(NegativeFlag) == 1) {
+	if (getFlagValue(ZeroFlag) == 1 || getFlagValue(NegativeFlag) == 1) {
         regValue[IP] = getOperandValue(cmd.left);
         command_did_jump = 1;
     }
@@ -305,7 +282,6 @@ void _jle (tCommandWithOperands cmd)
 
 void _push (tCommandWithOperands cmd)
 {
-	printf ("We push!!!\n");
 	tWord value = getOperandValue(cmd.left);
 	regValue[SP] -= WORD_SIZE;
 	memcpy(&RAM[regValue[SP]], &value, WORD_SIZE);
@@ -313,7 +289,6 @@ void _push (tCommandWithOperands cmd)
 
 void _pop (tCommandWithOperands cmd)
 {
-	printf ("We pop!!!\n");
 	tWord value;
 	memcpy(&value, &RAM[regValue[SP]], WORD_SIZE);
 	regValue[cmd.left.type] = value;
@@ -327,13 +302,11 @@ void _print (tCommandWithOperands cmd)
 
 void _input (tCommandWithOperands cmd)
 {
-	printf ("We input!!!\n");
 	scanf("%hd", &regValue[cmd.left.type]);
 }
 
 void _hlt (tCommandWithOperands cmd)
 {
-    printf ("We !!!\n");
     processing_halted_flag = 1;
 }
 

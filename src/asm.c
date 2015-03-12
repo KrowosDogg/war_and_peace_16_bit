@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -44,8 +45,10 @@ tOperand parseLabelOperand(char *operand_name, tDatabase label_values);
 */
 enum eRegister operandType(char *operand_name);
 
+
 int main (int argc, char *argv[])
 {
+    printf("I'm here! FIXME\n");
     if (argc != 3)
     {
         printf(help_string);
@@ -64,6 +67,7 @@ void assembleFile(FILE *f_source, FILE *f_destination)
 {
     tDatabase label_values;
     consctructLabelValuesDatabase(&label_values);
+
     //the first file parsing
     tAddress current_address = 0;
     while (!feof(f_source))

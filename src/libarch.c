@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#define BINARY_CODE_PRESENTATION
+
 int operandsNumberForCommandType[COMMAND_TYPES_NUMBER] = {2, 2, 1, 1, 1, 1, 0};
 
 char* registers[REGISTERS_NUMBER] =
@@ -187,7 +189,35 @@ int codeSize(tCode code)
 {
     return code.size*sizeof(tWord);
 }
-
+#ifdef BINARY_CODE_PRESENTATION
+//reads code from the file depending on its size
+//if reading error, code.size = 0
+tCode readCodeFromBinaryFile(FILE *f)
+{
+    tCode code;
+    tWord word;
+    fread(&word, sizeof(word), 1, f); //FIXME: may be reading errors
+    if (word == EOF)
+    {
+        code.size = 0;
+        return code;
+    }
+    code.size = codeSizeByFirstWord(word);
+    code.words = (tWord*) calloc(sizeof(tWord), code.size);
+    code.words[0] = word;
+    for (int i = 1; i < code.size; i++)
+    {
+        fread(&word, sizeof(word), 1, f); //FIXME: may be reading errors
+        code.words[i] = word;
+    }
+    return code;
+}
+//writes code from the file depending on its size
+void writeCodeToBinaryFile(FILE *f, tCode code)
+{
+    fwrite(code.words, sizeof(tWord), code.size, f); //FIXME: may be writing errors
+}
+#else
 //reads code from the file depending on its size
 //if reading error, code.size = 0
 tCode readCodeFromBinaryFile(FILE *f)
@@ -220,6 +250,7 @@ void writeCodeToBinaryFile(FILE *f, tCode code)
     fprintf(f, "\n");
 //    fwrite(code.words, sizeof(tWord), code.size, f); //FIXME: may be writing errors
 }
+#endif // BINARY_CODE_PRESENTATION
 
 tLine makeLine(tCommandWithOperands command_with_operands)
 {
