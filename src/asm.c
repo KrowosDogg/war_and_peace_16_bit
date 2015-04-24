@@ -66,7 +66,7 @@ int main (int argc, char *argv[])
 void assembleFile(FILE *f_source, FILE *f_destination)
 {
     tDatabase label_values;
-    consctructLabelValuesDatabase(&label_values);
+    constructLabelValuesDatabase(&label_values);
 
     //the first file parsing
     tAddress current_address = 0;
@@ -104,7 +104,7 @@ void assembleFile(FILE *f_source, FILE *f_destination)
         }
     }
     printf("Successfully assembled file.\n");
-    desctructLabelValuesDatabase(&label_values); //FIXME: implement it!
+    destructLabelValuesDatabase(&label_values); //FIXME: implement it!
 }
 
 /*

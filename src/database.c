@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #define DEFAULT_LABEL_DATABASE_SIZE 100
 
-void consctructLabelValuesDatabase(tDatabase *label_values)
+void constructLabelValuesDatabase(tDatabase *label_values)
 {
     if (label_values == NULL)
     {
@@ -18,7 +19,7 @@ void consctructLabelValuesDatabase(tDatabase *label_values)
     label_values->table = (tCortage*)malloc(label_values->table_allocated_size*sizeof(tCortage));
 }
 
-void desctructLabelValuesDatabase(tDatabase *label_values)
+void destructLabelValuesDatabase(tDatabase *label_values)
 {
     if (label_values == NULL)
     {
@@ -70,4 +71,92 @@ void printLabelValues(tDatabase label_values)
     }
 }
 
+// --------------------------------- Methods for tAddressesDatabase ----------------------------
 
+void constructAddressesDatabase(tAddressDatabase *addresses_values)
+{
+    constructLabelValuesDatabase(addresses_values);
+}
+
+void storeAddress(tAddressDatabase *addresses_values, tAddress address)
+{
+    if (addressInAddressesBase(address, *addresses_values))
+        return; //nothing to do.
+
+    if (addresses_values->table_real_size >= addresses_values->table_allocated_size)
+    {
+        printf("Error: number of addresses is too large (FIXME -- should realloc memory for Database)");
+        exit(2);
+    }
+
+    tCortage new_cortage = {{""}, address};
+    addresses_values->table[addresses_values->table_real_size] = new_cortage;
+    addresses_values->table_real_size += 1;
+}
+
+//Hard code... 26 is a number of latin letters
+//all labels are from two big latin letters
+tLine generateLabel(int i)
+{
+    tLine label;
+    if (i >= 26*26) {
+        printf("ERROR: Label cannot be generated!\n");
+        exit(1);
+    }
+    label.str[1] = 'A' + i%26;
+    i /= 26;
+    label.str[0] = 'A' + i%26;
+    label.str[2] = 0;
+    return label;
+}
+
+void generateAddressesLabels(tAddressDatabase addresses_values)
+{
+    //sort addresses with Bubble sort
+    for(int prohod = 1; prohod < addresses_values.table_real_size; prohod++)
+    {
+        for(int i = 0; i < addresses_values.table_real_size - prohod; i++)
+        {
+            if (addresses_values.table[i].address > addresses_values.table[i + 1].address) {
+                tCortage tmp = addresses_values.table[i];
+                addresses_values.table[i] = addresses_values.table[i + 1];
+                addresses_values.table[i + 1] = tmp;
+            }
+        }
+    }
+    for(int i = 0; i < addresses_values.table_real_size; i++) {
+        addresses_values.table[i].line = generateLabel(i);
+    }
+}
+
+void printAddressesValues(tAddressDatabase addresses_values)
+{
+    printLabelValues(addresses_values);
+}
+
+int addressInAddressesBase(tAddress address, tAddressDatabase addresses_values)
+{
+    for(int i = 0; i < addresses_values.table_real_size; i++)
+    {
+        if (addresses_values.table[i].address == address)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+tLine getAddressLabel(tAddress address, tAddressDatabase addresses_values)
+{
+    for(int i = 0; i < addresses_values.table_real_size; i++)
+    {
+        if (addresses_values.table[i].address == address)
+        {
+            return addresses_values.table[i].line;
+        }
+    }
+    //if not found address return string of zero size
+    tLine label;
+    label.str[0] = 0;
+    return label;
+}

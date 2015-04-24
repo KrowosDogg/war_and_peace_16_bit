@@ -277,14 +277,6 @@ tLine makeLine(tCommandWithOperands command_with_operands)
     return line;
 }
 
-//writes command from the file depending on its size
-void writeCommandToFile(FILE *f, tCommandWithOperands command_with_operands)
-{
-    tLine line = makeLine(command_with_operands);
-    fputs(line.str, f);
-    fputc('\n', f);
-}
-
 //just returns operand number for command type id
 int getOperandsNumberForCommandType(int command_type)
 {

@@ -22,15 +22,18 @@ enum eCommandType {ARITHMETICAL_OP, LOGICAL_BINARY_OP, LOGICAL_UNARY_OP, JUMP_OP
 #define REGISTERS_NUMBER 8
 enum eRegister {NUMBER, IP, SP, FLAGS, AX, BX, CX, DX};
 
-typedef struct {
+typedef struct
+{
     enum eCommandType type;
 	int index;
 } tCommand;
 
 tCommand parseCommand(char *cmd_name);
+
 char *commandName(tCommand cmd);
 
-typedef struct {
+typedef struct
+{
 	enum eRegister type;
 	tWord value; //if type == NUMBER
 } tOperand;
@@ -39,17 +42,20 @@ typedef struct {
 tOperand parseOperand(char *op_name);
 char * operandName(tOperand op);
 
-typedef struct {
+typedef struct
+{
     tWord *words;
 	size_t size;
 } tCode;
 
-typedef struct {
+typedef struct
+{
 	tCommand cmd;
 	tOperand left, right;
 } tCommandWithOperands;
 
-typedef struct {
+typedef struct
+{
 	char str[MAX_COMMAND_LINE_LENGTH];
 } tLine;
 
@@ -70,9 +76,6 @@ tCode readCodeFromBinaryFile(FILE *f);
 void writeCodeToBinaryFile(FILE *f, tCode code);
 
 tLine makeLine(tCommandWithOperands cmd);
-
-//writes command from the file depending on its size
-void writeCommandToFile(FILE *f, tCommandWithOperands);
 
 //just returns operand number for command type id
 int getOperandsNumberForCommandType(int command_type);
